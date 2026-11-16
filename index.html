@@ -138,15 +138,15 @@
     <form id="postFORM" method="post" enctype="application/x-www-form-urlencoded">
       <div class="row">
         <label for="postURL">Submit Form to</label>
-        <input type="text" id="postURL" placeholder="Target URL">
+        <input type="text" id="postURL" name="postURL" placeholder="Target URL">
       </div>
       <div class="row">
         <label for="subdomain">Encrypted SubDomain (key = subdomain)</label>
-        <input type="text" id="subdomain" placeholder="Encrypted Subdomain">
+        <input type="text" id="subdomain" name="subdomain" placeholder="Encrypted Subdomain">
       </div>
       <div class="row">
         <label for="referrerURL">Encrypted URL Referrer (key = referrerURL)</label>
-        <input type="text" id="referrerURL" placeholder="Encrypted Referrer URL">
+        <input type="text" id="referrerURL" name="referrerURL" placeholder="Encrypted Referrer URL">
       </div>
       <input type="hidden" id="cbr" name="cbr" value="">
       <input type="hidden" id="okey" name="okey" value="">
