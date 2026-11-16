@@ -1,0 +1,240 @@
+<%@LANGUAGE="VBSCRIPT" CODEPAGE="65001"%>
+<!doctype html>
+<%
+Dim req_subdomain : req_subdomain = REQUEST("txsubdomain")
+Dim req_urlreferrer : req_urlreferrer =  REQUEST("txreferrerUrl")
+
+Dim enc_subdomain : enc_subdomain=""
+Dim enc_urlreferrer : enc_urlreferrer = ""
+If REQUEST("txsubdomain")<>"" OR  REQUEST("txreferrerUrl")<>"" Then
+	enc_subdomain =  Trim(Replace(EncryptText("https://" & REQUEST("txsubdomain")), "'","\'"))
+	enc_urlreferrer =  Trim(Replace(EncryptText(REQUEST("txreferrerUrl")), "'","\'"))
+End If
+
+''===============================================
+	Dim g_TextKey : g_TextKey = "01011"
+	Private Function NML3EnCrypt2(strCryptThis)
+        Dim strChar, iKeyChar, iStringChar, i, strEncrypted
+        strEncrypted = ""
+        for i = 1 to Len(strCryptThis)
+            iKeyChar = Asc(mid(g_Key,i,1))
+            iStringChar = Asc(mid(strCryptThis,i,1))
+            ' *** uncomment below to encrypt with addition,
+            ' iCryptChar = iStringChar + iKeyChar
+            iCryptChar = iKeyChar Xor iStringChar
+            strEncrypted =  strEncrypted & Chr(iCryptChar)
+        next
+        NML3EnCrypt2 = Len(strCryptThis)
+    End Function
+
+    Private Function NML3EnCrypt(strCryptThis)
+        Dim strChar, iKeyChar, iStringChar, i, strEncrypted
+        strEncrypted = ""
+        for i = 1 to Len(strCryptThis)
+            iKeyChar = Asc(mid(g_Key,i,1))
+            iStringChar = Asc(mid(strCryptThis,i,1))
+            ' *** uncomment below to encrypt with addition,
+            ' iCryptChar = iStringChar + iKeyChar
+            iCryptChar = iKeyChar Xor iStringChar
+            strEncrypted =  strEncrypted & Chr(iCryptChar)
+        next
+        NML3EnCrypt = strEncrypted
+    End Function
+
+    Private Function NML3DeCrypt(strEncrypted)
+        Dim strChar, iKeyChar, iStringChar, i, strDecrypted
+        strDecrypted = ""
+        for i = 1 to Len(strEncrypted)
+        iKeyChar = (Asc(mid(g_Key,i,1)))
+        iStringChar = Asc(mid(strEncrypted,i,1))
+        ' *** uncomment below to decrypt with subtraction	
+        ' iDeCryptChar = iStringChar - iKeyChar 
+        iDeCryptChar = iKeyChar Xor iStringChar
+        strDecrypted =  strDecrypted & Chr(iDeCryptChar)
+        next
+        NML3DeCrypt = strDecrypted
+    End Function
+
+    Private Function EncryptText(strInput)
+        Dim strOutput, i, c
+        Dim intCounter
+
+        strOutput = ""
+        intCounter = 0
+
+        For i = 1 to len(strInput)
+            c = (mid(strInput,i,1))
+
+            If intCounter < Len(g_TextKey) Then
+                intCounter = intCounter + 1
+            Else
+                intCounter = 1
+            End If
+
+            Dim iKeyChar
+            Dim iStringChar
+            Dim iCryptChar
+
+            iKeyChar = Mid(g_TextKey, intCounter, 1)
+            iStringChar = Asc(c)
+
+            If iKeyChar = "1" Then
+                iCryptChar = iStringChar - 2
+            Else
+                iCryptChar = iStringChar + 2
+            End If
+
+            strOutput = strOutput & Chr(iCryptChar)
+        Next
+
+        EncryptText = strOutput
+    End Function
+
+    Private Function DecryptText(strInput)
+        Dim strOutput, i, c
+        Dim intCounter
+
+        strOutput = ""
+        intCounter = 0
+
+        For i = 1 to len(strInput)
+            c = (mid(strInput,i,1))
+
+            If intCounter < Len(g_TextKey) Then
+                intCounter = intCounter + 1
+            Else
+                intCounter = 1
+            End If
+
+            Dim iKeyChar
+            Dim iStringChar
+            Dim iDeCryptChar
+
+            iKeyChar = Mid(g_TextKey, intCounter, 1)
+            iStringChar = Asc(c)
+
+            If iKeyChar = "1" Then
+                iDeCryptChar = iStringChar + 2
+            Else
+                iDeCryptChar = iStringChar - 2
+            End If
+
+            strOutput = strOutput & Chr(iDeCryptChar)
+        Next
+
+        DecryptText = strOutput
+    End Function
+
+    function date2epoch(myDate)
+        Set dateTime = CreateObject("WbemScripting.SWbemDateTime")
+        dateTime.SetVarDate(myDate)
+        date2epoch = DateDiff("s", "01/01/1970 00:00:00", CDate(dateTime.GetVarDate (false)))
+    end function
+''============================================	
+
+Dim req_postURL:req_postURL=REQUEST("postURL") 
+Dim req_encSubdomain:req_encSubdomain=REQUEST("subdomain") 
+Dim req_encReferrer:req_encReferrer=REQUEST("referrerURL") 
+response.AddHeader "referrer-policy","no-referrer-when-downgrade"
+%>
+<html>
+<head>
+<meta charset="utf-8">
+<title>URL REFERRER - TEST SOURCE</title>
+<script language="javascript">
+	function goNow()
+	{
+		var d_url = document.getElementById("targetURL");
+		alert("You are about to go to "+ d_url.value);
+		window.location.replace(d_url.value);
+	}
+	function postMe()
+	{
+		var actionURL = document.getElementById("postURL").value;
+		var encSubdomain = document.getElementById("subdomain").value;
+		var encReferrerURL = document.getElementById("referrerURL").value;
+		var fPOST = document.getElementById("postFORM");
+		fPOST.action = actionURL;
+		fPOST.submit();
+	}
+	function postNow()
+	{
+		var f = document.getElementById('postReferrer');
+		var furl = document.getElementById('targetURL').value;
+		var fKey = document.getElementById('inputID').value;
+		var fValue = document.getElementById('inputValue').value;
+		var elemInput = document.createElement("input");
+		f.action=furl;
+		elemInput.id=fKey;
+		elemInput.name=fKey;
+		elemInput.type="text";
+		elemInput.value = fValue;
+		f.appendChild(elemInput)
+		f.submit();
+	}
+</script>
+</head>
+<body>
+<form id="postReferrer" name="postReferrer" method="post" enctype="application/x-www-form-urlencoded"></form>
+<div  style="width: 50%; margin: 20px  auto; align-content: center; text-align: center; background-color:beige; border-radius: 10px; padding: 20px;">
+	<div style="font-family:Gotham, 'Helvetica Neue', Helvetica, Arial, 'sans-serif'; font-size: 18px; margin: 10px;">Test Referring URL Authentication</div>
+	<div style="text-align: justify; margin-left: 60px;">
+		<p>Referrer Address can be any of the two or both:</p>
+		<p>1. <strong><%="https://" & Request.ServerVariables ("SERVER_NAME") & Request.ServerVariables ("URL") %></strong></p>
+		<p>2. <strong><%="https://" & Request.ServerVariables ("SERVER_NAME") %>/*</strong></p>
+	</div>
+	<div style="margin-top: 20px;"><input type="text" id="targetURL" name="targetURL" style="padding: 10px;width: 80%; border-radius: 5px; font-size: 16px;" placeholder="Your destination URL (e.g., https://www.v3.naxosspokenwordlibrary.com)" value="" /></div>
+	<div style="margin-top: 20px;"><input type="button" id="gonow" value="Click here to go to your destination URL" onClick="javascript:goNow();" style="font-size: 14px; padding: 5px 40px;" /></div>
+	<div style="margin-top: 20px;">
+		<input type="text" id="inputID" name="inputID" placeholder="parameter Key ID" style="padding: 10px;width: 200px; border-radius: 5px; font-size: 16px;" /> =
+		<input type="text" id="inputValue" name="inputValue" placeholder="parameter Value" style="padding: 10px;width: 200px;; border-radius: 5px; font-size: 16px;" />
+	</div>
+	<div style="margin-top: 20px;"><input type="button" id="gonow" value="POST Data to Destination URL" onClick="javascript:postNow();" style="font-size: 14px; padding: 5px 40px;" /></div>
+</div>
+
+<div style="width: 50%; margin:10px  auto; align-content: center; text-align: center; background-color:beige; border-radius: 10px; padding: 20px;">
+	<div style="font-family:Gotham, 'Helvetica Neue', Helvetica, Arial, 'sans-serif'; font-size: 18px; margin: 10px;">Generate Encrypted URL Referrer and Subdomain</div>
+	<form action="/UrlReferrer.asp" id="encrptForm" method="post" enctype="application/x-www-form-urlencoded">
+		<input type="text" id="txsubdomain" name="txsubdomain" style="padding: 10px;width: 80%; border-radius: 5px; font-size: 16px;margin-bottom:5px; " placeholder="Subdomain  (e.g., rdc.nml3.naxosmusiclibrary.com, newworld.nml3.naxosmusiclibrary.com)" value="<%=req_subdomain %>"  /><br />
+		<div>Encrypted Subdomain:<br />
+			<span style="font-weight:bold;"><input type="text" readonly="readonly" value="<%=enc_subdomain %>"  style="padding: 10px;width: 80%; border-radius: 5px; font-size: 16px;margin-bottom:5px;" /></span>
+			<br />
+			Decrypted: <%=DecryptText(enc_subdomain) %>
+		</div>
+		<br />
+		<input type="text" id="txreferrerUrl" name="txreferrerUrl" style="padding: 10px;width: 80%; border-radius: 5px; font-size: 16px;margin-bottom:5px;" placeholder="URL Referrer  (e.g., https://<%=Request.ServerVariables ("SERVER_NAME")  %>)" value="<%=req_urlreferrer %>"  /><br />
+		<div>Encrypted URL Referrer:<br />
+			<span style="font-weight:bold;"><input type="text" readonly="readonly" value="<%=enc_urlreferrer %>"  style="padding: 10px;width: 80%; border-radius: 5px; font-size: 16px;margin-bottom:5px;" /></span>
+			<br />
+			Decrypted: <%=DecryptText(enc_urlreferrer) %>
+		</div>
+		<br />
+		<input type="submit" id="submit" name="submit" value="Generate Encrypted Values" style="font-size: 14px; padding: 5px 40px;"   />
+	</form>
+	</div>
+		
+	<!--
+	<%
+		response.write "NML subdomain (https://rdc.nml3.naxosmusiclibrary.com/) = <br />" & Replace(EncryptText("https://rdc.nml3.naxosmusiclibrary.com/'"),"'", "\'") & "<br />"
+		response.write "NML referrerURL (http://www.naxosradio.local/) = <br />" & Replace(EncryptText("http://www.naxosradio.local/"), "'","\'") & "<br />"
+	%>
+	-->
+	
+	<div style="width: 50%; margin:10px  auto; align-content: center; text-align: center; background-color:beige; border-radius: 10px; padding: 20px;">
+		<div style="font-family:Gotham, 'Helvetica Neue', Helvetica, Arial, 'sans-serif'; font-size: 18px; margin: 10px;">Submit FORM with POST Method</div>
+		<form id="postFORM" name="postFORM" action="" id="encrptForm" method="post" enctype="application/x-www-form-urlencoded">
+			<div>Submit Form to:</div>
+			<input type="text" id="postURL" name="postURL" style="padding: 10px;width: 80%; border-radius: 5px; font-size: 16px;margin-bottom:5px; " placeholder="Target URL  (e.g., https://rdc.nml3.naxosmusiclibrary.com, https://newworld.nml3.naxosmusiclibrary.com)" value="<%=req_postURL %>"  /><br />
+			<div>Encrypted SubDomain (key=subdomain) :</div>
+			<input type="text" id="subdomain" name="subdomain" style="padding: 10px;width: 80%; border-radius: 5px; font-size: 16px;margin-bottom:5px; " placeholder="Encrypted Subdomain  (e.g., jvvru<11tfe0pon50pczquowukenkdtct{0eqo)" value="<%=req_encSubdomain %>"  /><br />
+			<div>Encrypted URL Referrer (key=referrerURL) :</div>
+			<input type="text" id="referrerURL" name="referrerURL" style="padding: 10px;width: 80%; border-radius: 5px; font-size: 16px;margin-bottom:5px; " placeholder="Encrypted Referrer URL  (e.g., jvvru<11yyy0pczqutcfkq0nqecn1jqog0cur)" value="<%=req_encReferrer %>"  /><br />
+			<br />
+			<input type="hidden" id="cbr" name="cbr" value="" />
+			<input type="hidden" id="okey" name="okey" value="" />
+			<input type="button" id="postme" name="postme" value="Submit with POST" style="font-size: 14px; padding: 5px 40px;" onclick="javascript:postMe();"   />
+		</form>
+	</div>
+
+</body>
+</html>

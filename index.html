@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Must match the original ASP response header: sends the FULL page URL as the
+     Referer on cross-origin requests (not just the origin). -->
+<meta name="referrer" content="no-referrer-when-downgrade">
+<title>URL REFERRER - TEST SOURCE</title>
+<style>
+  :root{
+    --bg:#0f1115; --card:#171a21; --line:#262b36; --text:#e6e9ef; --muted:#98a2b3;
+    --accent:#6ea8fe; --accent-ink:#0b1020; --ok:#4ade80; --warn:#fbbf24;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#f6f7f9; --card:#ffffff; --line:#e3e6ec; --text:#1a1d23; --muted:#5b6472;
+      --accent:#2563eb; --accent-ink:#ffffff;
+    }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:24px 16px 64px; background:var(--bg); color:var(--text);
+    font-family:Gotham,"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif; font-size:16px; line-height:1.5;
+  }
+  .wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+  header h1{margin:0 0 4px;font-size:22px;letter-spacing:.2px}
+  header p{margin:0;color:var(--muted);font-size:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+  .card h2{margin:0 0 12px;font-size:17px}
+  .row{margin-top:14px}
+  .row label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+  input[type=text]{
+    width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--line);
+    background:var(--bg);color:var(--text);font-size:15px;font-family:var(--mono);
+  }
+  input[readonly]{color:var(--muted)}
+  input[type=text]:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .pair{display:flex;gap:10px;align-items:flex-end}
+  .pair .row{flex:1}
+  button{
+    border:0;border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;
+    background:var(--accent);color:var(--accent-ink);white-space:nowrap;
+  }
+  button:hover{filter:brightness(1.08)}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  ul.allow{list-style:none;padding:0;margin:8px 0 0}
+  ul.allow li{margin:6px 0;font-family:var(--mono);font-size:13px;word-break:break-all}
+  ul.allow li b{color:var(--accent);font-weight:600}
+  .out{
+    margin-top:8px;font-family:var(--mono);font-size:13px;word-break:break-all;
+    background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;
+  }
+  .dec{font-size:13px;color:var(--muted);margin-top:4px}
+  .dec b{color:var(--text);font-family:var(--mono);font-weight:500}
+  .note{font-size:13px;color:var(--muted);margin:10px 0 0}
+  .note code{font-family:var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+  .pill{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted);margin-left:8px;vertical-align:middle}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>URL REFERRER &mdash; TEST SOURCE</h1>
+    <p>Static build of the original <code>UrlReferrer.asp</code>. All encryption runs in your browser; nothing is sent anywhere.</p>
+  </header>
+
+  <!-- ============ 1. TEST REFERRING URL AUTHENTICATION ============ -->
+  <section class="card">
+    <h2>Test Referring URL Authentication</h2>
+    <p style="margin:0 0 6px;font-size:14px">Referrer Address can be any of the two or both:</p>
+    <ul class="allow">
+      <li>1. <b id="selfUrl">-</b></li>
+      <li>2. <b id="selfWildcard">-</b></li>
+    </ul>
+
+    <div class="row">
+      <label for="targetURL">Your destination URL (e.g. https://www.example.com)</label>
+      <input type="text" id="targetURL" placeholder="https://www.example.com">
+    </div>
+
+    <div class="row pair">
+      <div class="row">
+        <label for="inputID">parameter Key ID</label>
+        <input type="text" id="inputID" placeholder="parameter Key ID">
+      </div>
+      <div class="row">
+        <label for="inputValue">parameter Value</label>
+        <input type="text" id="inputValue" placeholder="parameter Value">
+      </div>
+    </div>
+
+    <div class="btnrow">
+      <button type="button" id="goNowBtn">Go to destination URL</button>
+      <button type="button" class="ghost" id="postNowBtn">POST Data to Destination URL</button>
+    </div>
+    <p class="note">The destination receives <code>Referer: &lt;this page URL&gt;</code> on a normal request, plus the posted parameter on the POST.</p>
+  </section>
+
+  <!-- ============ 2. GENERATE ENCRYPTED VALUES ============ -->
+  <section class="card">
+    <h2>Generate Encrypted URL Referrer and Subdomain</h2>
+
+    <div class="row">
+      <label for="txsubdomain">Subdomain (e.g. rdc.nml3.example.com)</label>
+      <input type="text" id="txsubdomain" placeholder="Subdomain">
+    </div>
+    <div class="row">
+      <label>Encrypted Subdomain</label>
+      <div class="out" id="encSubdomainOut"></div>
+      <div class="dec">Decrypted: <b id="decSubdomainOut"></b></div>
+    </div>
+
+    <div class="row">
+      <label for="txreferrerUrl">URL Referrer (e.g. https://this-host.example.com)</label>
+      <input type="text" id="txreferrerUrl" placeholder="URL Referrer">
+    </div>
+    <div class="row">
+      <label>Encrypted URL Referrer</label>
+      <div class="out" id="encReferrerOut"></div>
+      <div class="dec">Decrypted: <b id="decReferrerOut"></b></div>
+    </div>
+
+    <div class="btnrow">
+      <button type="button" id="genBtn">Generate Encrypted Values</button>
+      <button type="button" class="ghost" id="copyBtn">Copy both</button>
+      <button type="button" class="ghost" id="useBtn">Use in POST form below</button>
+    </div>
+    <p class="note">Cipher matches the original <code>EncryptText</code>: key <code>01011</code> cycled over the string, <code>+2</code> where the key char is <code>0</code> and <code>&minus;2</code> where it is <code>1</code>.</p>
+  </section>
+
+  <!-- ============ 3. SUBMIT FORM WITH POST METHOD ============ -->
+  <section class="card">
+    <h2>Submit FORM with POST Method</h2>
+    <form id="postFORM" method="post" enctype="application/x-www-form-urlencoded">
+      <div class="row">
+        <label for="postURL">Submit Form to</label>
+        <input type="text" id="postURL" placeholder="Target URL">
+      </div>
+      <div class="row">
+        <label for="subdomain">Encrypted SubDomain (key = subdomain)</label>
+        <input type="text" id="subdomain" placeholder="Encrypted Subdomain">
+      </div>
+      <div class="row">
+        <label for="referrerURL">Encrypted URL Referrer (key = referrerURL)</label>
+        <input type="text" id="referrerURL" placeholder="Encrypted Referrer URL">
+      </div>
+      <input type="hidden" id="cbr" name="cbr" value="">
+      <input type="hidden" id="okey" name="okey" value="">
+    </form>
+    <div class="btnrow">
+      <button type="button" id="postMeBtn">Submit with POST</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ------------------------------------------------------------------
+   EncryptText / DecryptText — ported 1:1 from UrlReferrer.asp
+   (g_TextKey = "01011", cycled; '1' -> -2, '0' -> +2)
+   ------------------------------------------------------------------ */
+var g_TextKey = "01011";
+
+function encryptText(strInput) {
+  var strOutput = "", intCounter = 0;
+  for (var i = 0; i < strInput.length; i++) {
+    intCounter = (intCounter < g_TextKey.length) ? intCounter + 1 : 1;
+    var iKeyChar = g_TextKey.charAt(intCounter - 1);
+    var iStringChar = strInput.charCodeAt(i);
+    var iCryptChar = (iKeyChar === "1") ? iStringChar - 2 : iStringChar + 2;
+    strOutput += String.fromCharCode(iCryptChar);
+  }
+  return strOutput;
+}
+
+function decryptText(strInput) {
+  var strOutput = "", intCounter = 0;
+  for (var i = 0; i < strInput.length; i++) {
+    intCounter = (intCounter < g_TextKey.length) ? intCounter + 1 : 1;
+    var iKeyChar = g_TextKey.charAt(intCounter - 1);
+    var iStringChar = strInput.charCodeAt(i);
+    var iDeCryptChar = (iKeyChar === "1") ? iStringChar + 2 : iStringChar - 2;
+    strOutput += String.fromCharCode(iDeCryptChar);
+  }
+  return strOutput;
+}
+
+/* ------------------------------------------------------------------
+   Helpers
+   ------------------------------------------------------------------ */
+function $(id) { return document.getElementById(id); }
+
+/* Page URL as the browser sees it — this is what becomes the Referer. */
+var selfUrl = location.origin + location.pathname + location.search;
+var selfWildcard = location.origin + "/*";
+
+/* ------------------------------------------------------------------
+   1. Test Referring URL Authentication
+   ------------------------------------------------------------------ */
+function goNow() {
+  var d_url = $("targetURL").value.trim();
+  if (!d_url) { alert("Enter a destination URL first."); return; }
+  alert("You are about to go to " + d_url);
+  window.location.replace(d_url);
+}
+
+function postNow() {
+  var furl = $("targetURL").value.trim();
+  if (!furl) { alert("Enter a destination URL first."); return; }
+  var f = $("postReferrer");
+  var fKey = $("inputID").value.trim();
+  var fValue = $("inputValue").value;
+  f.action = furl;
+  f.innerHTML = "";
+  if (fKey) {
+    var elemInput = document.createElement("input");
+    elemInput.id = fKey;
+    elemInput.name = fKey;
+    elemInput.type = "text";
+    elemInput.value = fValue;
+    f.appendChild(elemInput);
+  }
+  f.submit();
+}
+
+/* ------------------------------------------------------------------
+   2. Generate Encrypted URL Referrer and Subdomain
+   ------------------------------------------------------------------ */
+function generate() {
+  var rawSub = $("txsubdomain").value.trim();
+  var rawRef = $("txreferrerUrl").value.trim();
+
+  var encSub = rawSub ? encryptText("https://" + rawSub) : "";
+  var encRef = rawRef ? encryptText(rawRef) : "";
+
+  $("encSubdomainOut").textContent = encSub;
+  $("decSubdomainOut").textContent = encSub ? decryptText(encSub) : "";
+  $("encReferrerOut").textContent = encRef;
+  $("decReferrerOut").textContent = encRef ? decryptText(encRef) : "";
+
+  return { encSub: encSub, encRef: encRef };
+}
+
+/* ------------------------------------------------------------------
+   3. Submit FORM with POST Method
+   ------------------------------------------------------------------ */
+function postMe() {
+  var actionURL = $("postURL").value.trim();
+  if (!actionURL) { alert("Enter the target URL for the form."); return; }
+  var fPOST = $("postFORM");
+  fPOST.action = actionURL;
+  fPOST.submit();
+}
+
+/* ------------------------------------------------------------------
+   Wiring
+   ------------------------------------------------------------------ */
+window.addEventListener("DOMContentLoaded", function () {
+  $("selfUrl").textContent = selfUrl;
+  $("selfWildcard").textContent = selfWildcard;
+
+  $("goNowBtn").addEventListener("click", goNow);
+  $("postNowBtn").addEventListener("click", postNow);
+  $("genBtn").addEventListener("click", function () { generate(); });
+  $("postMeBtn").addEventListener("click", postMe);
+
+  $("txsubdomain").addEventListener("input", generate);
+  $("txreferrerUrl").addEventListener("input", generate);
+
+  $("copyBtn").addEventListener("click", function () {
+    var r = generate();
+    var txt = "subdomain=" + r.encSub + "\nreferrerURL=" + r.encRef;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(function () {
+        $("copyBtn").textContent = "Copied!";
+        setTimeout(function () { $("copyBtn").textContent = "Copy both"; }, 1200);
+      });
+    } else {
+      window.prompt("Copy the values:", txt);
+    }
+  });
+
+  $("useBtn").addEventListener("click", function () {
+    var r = generate();
+    $("subdomain").value = r.encSub;
+    $("referrerURL").value = r.encRef;
+    if (!$("postURL").value) $("postURL").value = $("targetURL").value.trim();
+    $("subdomain").scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+
+  generate();
+});
+</script>
+
+<!-- form used by postNow() -->
+<form id="postReferrer" name="postReferrer" method="post" enctype="application/x-www-form-urlencoded"></form>
+</body>
+</html>
