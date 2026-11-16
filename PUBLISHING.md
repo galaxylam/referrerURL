@@ -70,6 +70,18 @@ This matters because the modern browser default is `strict-origin-when-cross-ori
 
 The meta tag takes precedence over any `Referrer-Policy` header GitHub Pages sets.
 
+### Verified behaviour
+
+Measured with headless Chrome, navigating from the tool at `http://localhost:8769/referrerURL/` to a destination on a different origin:
+
+| Referrer setup | Destination received |
+|---|---|
+| meta tag present | `http://localhost:8769/referrerURL/` — full URL, path intact |
+| no meta tag (browser default) | `http://localhost:8767/` — origin only, **path stripped** |
+| meta tag + `Referrer-Policy: strict-origin-when-cross-origin` header | `http://localhost:8901/referrerURL/` — **meta wins over the header** |
+
+So the meta tag is doing real work, and it survives a CDN that sets its own header.
+
 Two caveats:
 - `no-referrer-when-downgrade` still drops the referrer entirely on an HTTPS → HTTP downgrade, so **test destinations must be HTTPS**.
 - The path is preserved only when the destination is HTTPS. Over plain HTTP you get no referrer at all.
@@ -112,3 +124,5 @@ curl -sI -H "Referer: https://galaxylam.github.io/referrerURL/" https://your-des
 ```
 
 **Destination receives only the origin** — the `<meta name="referrer">` tag was removed, or a `<meta>` with a stricter policy was added. Only one referrer meta should exist.
+
+**Destination receives the origin but you expected the path** — check that `<meta name="referrer" content="no-referrer-when-downgrade">` is present in `index.html` and that the page was rebuilt after the change.

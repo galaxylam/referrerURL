@@ -27,6 +27,21 @@ The page prints the two acceptable values in its first card, derived from `locat
 
 Whitelist one or both in the destination app.
 
+Note the trailing slash on #1 — that is what `location.pathname` returns for a GitHub Pages project site, and it is the exact string the destination will see in the `Referer` header.
+
+To confirm what your destination actually receives, hit a header echo service (e.g. `https://httpbin.org/headers`) from the tool's "Go to destination URL" button.
+
+### Encrypted values for the form POST
+
+The "Generate Encrypted Values" section produces the `subdomain` and `referrerURL` values for the POST form. Example — for subdomain `rdc.nml3.naxosmusiclibrary.com`:
+
+```
+subdomain   = jrvnq<-1pbe,pkj5,p_vqqosqkang`t_tw,emo
+referrerURL = jrvnq<-1e_n_zwjck0egvfw`,km1pchctpctSTJ-
+```
+
+(The `subdomain` value is the encryption of `https://` + your subdomain; the `referrerURL` value is the encryption of the referrer URL as typed.) The "Use in POST form below" button copies both into the third card automatically.
+
 ### Why the `<meta name="referrer">` tag matters
 
 The page sets:
